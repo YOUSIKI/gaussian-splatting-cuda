@@ -57,7 +57,7 @@ int parse_cmd_line_args(const std::vector<std::string>& args,
                                 "This program provides a lightning-fast CUDA implementation of the 3D Gaussian Splatting algorithm for real-time radiance field rendering.");
     args::HelpFlag help(parser, "help", "Display this help menu", {'h', "help"});
     args::ValueFlag<float> convergence_rate(parser, "convergence_rate", "Set convergence rate", {'c', "convergence_rate"});
-    args::ValueFlag<int> resolution(parser, "resolution", "Set resolutino", {'r', "resolution"});
+    args::ValueFlag<int> resolution(parser, "resolution", "Set resolution", {'r', "resolution"});
     args::Flag enable_cr_monitoring(parser, "enable_cr_monitoring", "Enable convergence rate monitoring", {"enable-cr-monitoring"});
     args::Flag force_overwrite_output_path(parser, "force", "Forces to overwrite output folder", {'f', "force"});
     args::Flag empty_gpu_memory(parser, "empty_gpu_cache", "Forces to reset GPU Cache. Should be lighter on VRAM", {"empty-gpu-cache"});
