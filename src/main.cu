@@ -289,7 +289,7 @@ int main(int argc, char* argv[]) {
               << std::fixed << std::setw(7) << std::setprecision(3) << time_elapsed.count() << "sec, avg "
               << std::fixed << std::setw(4) << std::setprecision(1) << 1.0 * optimParams.iterations / time_elapsed.count() << " iter/sec, "
               << gaussians.Get_xyz().size(0) << " splats, "
-              << std::fixed << std::setw(7) << std::setprecision(6) << " psrn: " << psnr_value << std::endl
+              << std::fixed << std::setw(7) << std::setprecision(6) << " psnr: " << psnr_value << std::endl
               << std::endl
               << std::endl;
 
