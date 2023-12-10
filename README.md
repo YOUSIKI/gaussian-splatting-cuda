@@ -11,6 +11,16 @@ The materials, code, and assets within this repository are intended solely for e
 
 
 ## News
+- **[2023-12-10]**:
+    - Add docker builder and runtime environments. Now users can build and run gaussian splatting with the following comamnds:
+      ```bash
+      docker build -t gaussian-splatting-cuda:builder -f docker/builder.Dockerfile .
+      docker build -t gaussian-splatting-cuda:runtime -f docker/runtime.Dockerfile .
+      docker run --rm --runtime=nvidia --gpus all -v $(pwd):/workspace -u $(id -u):$(id -g) -it gaussian-splatting-cuda:builder cmake -B build -DCMAKE_BUILD_TYPE=Release
+      docker run --rm --runtime=nvidia --gpus all -v $(pwd):/workspace -u $(id -u):$(id -g) -it gaussian-splatting-cuda:builder cmake --build build -- -j
+      docker run --runtime=nvidia --gpus all -v $(pwd):/workspace -u $(id -u):$(id -g) -dit gaussian-splatting-cuda:runtime ./build/gaussian_splatting_cuda --data-path=data/tandt/train
+      ```
+    - Support dataset with different image shapes, e.g., [Phototourism dataset](https://www.cs.ubc.ca/research/image-matching-challenge/current/). *I'm also working on adapting the idea of [NeRF-W](https://nerf-w.github.io/) to 3DGS.*
 - **[2023-09-11]**:
     - Resolution parameter -r [2,4,8] introduced. For instance, truck scene trains now in about 52 seconds.
 - **[2023-09-11]**:
