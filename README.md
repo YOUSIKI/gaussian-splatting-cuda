@@ -1,4 +1,11 @@
 # "3D Gaussian Splatting for Real-Time Radiance Field Rendering" Reproduction in C++ and CUDA
+
+## Fork Statement
+
+This repo is forked from [MrNeRF/gaussian-splatting-cuda](https://github.com/MrNeRF/gaussian-splatting-cuda) and contains some personal modifications (which might be negative to performance and accuracy). Please refer to the upstream repo for the original implementation. He's also maintaining [an awesome list of 3DGS](https://github.com/MrNeRF/awesome-3D-gaussian-splatting?tab=readme-ov-file#viewers), which is useful for general survey. Many thanks to [MrNeRF](https://github.com/MrNeRF) for his great work!
+
+## Introduction
+
 This repository contains a reproduction of the Gaussian-Splatting software, originally developed by Inria and the Max Planck Institut for Informatik (MPII). The reproduction is written in C++ and CUDA.
 I have used the source code from the original [repo](https://github.com/graphdeco-inria/gaussian-splatting) as blueprint for my first implementation. 
 The original code is written in Python and PyTorch.
