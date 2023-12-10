@@ -466,12 +466,11 @@ std::unique_ptr<SceneInfo> read_colmap_scene_info(std::filesystem::path file_pat
     if (same_shape_flag) {
         std::cout << "Training with " << ncams << " images of "
                   << cam0._img_w << " x " << cam0._img_h << resized + " pixels ("
-                  << std::fixed << std::setprecision(3) << image_mpixels << " Mpixel per image, "
-                  << std::fixed << std::setprecision(1) << image_mpixels * ncams << " Mpixel total)" << std::endl;
+                  << std::fixed << std::setprecision(3) << image_mpixels / ncams << " Mpixel per image, "
+                  << std::fixed << std::setprecision(1) << image_mpixels << " Mpixel total)" << std::endl;
     } else {
         std::cout << "Training with " << ncams << " images of different sizes ("
-                  << std::fixed << std::setprecision(3) << image_mpixels << " Mpixel per image, "
-                  << std::fixed << std::setprecision(1) << image_mpixels * ncams << " Mpixel total)" << std::endl;
+                  << std::fixed << std::setprecision(1) << image_mpixels << " Mpixel total)" << std::endl;
     }
 
     auto [translate, radius] = getNerfppNorm(sceneInfos->_cameras);
