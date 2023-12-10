@@ -433,26 +433,46 @@ std::pair<Eigen::Vector3f, float> getNerfppNorm(std::vector<CameraInfo>& cam_inf
 }
 
 std::unique_ptr<SceneInfo> read_colmap_scene_info(std::filesystem::path file_path, int resolution) {
-    auto cameras = read_cameras_binary(file_path / "sparse/0/cameras.bin");
-    auto images = read_images_binary(file_path / "sparse/0/images.bin");
+    // Auto detect for `sparse` or `sparse/0` directory.
+    std::filesystem::path sparse_path = file_path / "sparse";
+    if (std::filesystem::is_directory(sparse_path / "0")) {
+        sparse_path = sparse_path / "0";
+    }
+    std::cout << "Reading COLMAP reconstruction from " << sparse_path << std::endl;
+
+    auto cameras = read_cameras_binary(sparse_path / "cameras.bin");
+    auto images = read_images_binary(sparse_path / "images.bin");
 
     auto sceneInfos = std::make_unique<SceneInfo>();
-    if (!std::filesystem::exists(file_path / "sparse/0/points3D.ply")) {
-        sceneInfos->_point_cloud = read_point3D_binary(file_path / "sparse/0/points3D.bin");
+    if (!std::filesystem::exists(sparse_path / "points3D.ply")) {
+        sceneInfos->_point_cloud = read_point3D_binary(sparse_path / "points3D.bin");
     } else {
-        sceneInfos->_point_cloud = read_ply_file(file_path / "sparse/0/points3D.ply");
+        sceneInfos->_point_cloud = read_ply_file(sparse_path / "points3D.ply");
     }
-    sceneInfos->_ply_path = file_path / "sparse/0/points3D.ply";
+    sceneInfos->_ply_path = sparse_path / "points3D.ply";
     sceneInfos->_cameras = read_colmap_cameras(file_path / "images", cameras, images, resolution);
 
     auto& cam0 = sceneInfos->_cameras[0];
     auto ncams = sceneInfos->_cameras.size();
-    const float image_mpixels = cam0._img_w * cam0._img_h / 1'000'000.0f;
+    bool same_shape_flag = true;
+    float image_mpixels = 0.0f;
     const std::string resized = resolution == 2 || resolution == 4 || resolution == 8 ? " (resized) " : "";
-    std::cout << "Training with " << ncams << " images of "
-              << cam0._img_w << " x " << cam0._img_h << resized + " pixels ("
-              << std::fixed << std::setprecision(3) << image_mpixels << " Mpixel per image, "
-              << std::fixed << std::setprecision(1) << image_mpixels * ncams << " Mpixel total)" << std::endl;
+    for (const auto& cam : sceneInfos->_cameras) {
+        if (cam._img_w != cam0._img_w || cam._img_h != cam0._img_h) {
+            same_shape_flag = false;
+        }
+        image_mpixels += cam._img_w * cam._img_h / 1'000'000.0f;
+    }
+    if (same_shape_flag) {
+        std::cout << "Training with " << ncams << " images of "
+                  << cam0._img_w << " x " << cam0._img_h << resized + " pixels ("
+                  << std::fixed << std::setprecision(3) << image_mpixels << " Mpixel per image, "
+                  << std::fixed << std::setprecision(1) << image_mpixels * ncams << " Mpixel total)" << std::endl;
+    } else {
+        std::cout << "Training with " << ncams << " images of different sizes ("
+                  << std::fixed << std::setprecision(3) << image_mpixels << " Mpixel per image, "
+                  << std::fixed << std::setprecision(1) << image_mpixels * ncams << " Mpixel total)" << std::endl;
+    }
 
     auto [translate, radius] = getNerfppNorm(sceneInfos->_cameras);
     sceneInfos->_nerf_norm_radius = radius;
