@@ -27,6 +27,8 @@ namespace gs {
             bool early_stopping = false;
             float convergence_threshold = 0.007f;
             bool empty_gpu_cache = false;
+            uint64_t save_interval = 10000;
+            uint64_t evaluate_interval = 10000;
         };
 
         struct ModelParameters {

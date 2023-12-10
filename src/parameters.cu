@@ -53,6 +53,8 @@ namespace gs {
             params.early_stopping = json["early_stopping"];
             params.convergence_threshold = json["convergence_threshold"];
             params.empty_gpu_cache = json["empty_gpu_cache"];
+            params.save_interval = json["save_interval"];
+            params.evaluate_interval = json["evaluate_interval"];
 
             return params;
         }

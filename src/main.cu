@@ -135,6 +135,32 @@ float psnr_metric(const torch::Tensor& rendered_img, const torch::Tensor& gt_img
     return (20.f * torch::log10(1.0 / mse_val.sqrt())).mean().item<float>();
 }
 
+// Evaluate the overall metrics after training.
+void evaluate_overall_metrics(Scene& scene, GaussianModel& gaussians, torch::Tensor& background, const int window_size, const int channel, const torch::Tensor& conv_window) {
+    torch::NoGradGuard no_grad;
+    auto camera_count = scene.Get_camera_count();
+    auto indices = get_random_indices(camera_count);
+    float overall_l1l = 0.f, overall_ssim = 0.f, overall_psnr = 0.f;
+    for (const int camera_index : indices) {
+        auto& cam = scene.Get_training_camera(camera_index);
+        const auto gt_image = cam.Get_original_image().to(torch::kCUDA, true);
+        // Render
+        const auto [image, viewspace_point_tensor, visibility_filter, radii] = render(cam, gaussians, background);
+        // Metrics computation
+        overall_l1l += gaussian_splatting::l1_loss(image, gt_image).item<float>();
+        overall_ssim += gaussian_splatting::ssim(image, gt_image, conv_window, window_size, channel).item<float>();
+        overall_psnr += psnr_metric(image, gt_image);
+    }
+    overall_l1l /= camera_count;
+    overall_ssim /= camera_count;
+    overall_psnr /= camera_count;
+    std::cout << std::endl
+              << "Overall metrics:"
+              << "L1 " << std::fixed << std::setw(7) << std::setprecision(6) << overall_l1l << ", "
+              << "SSIM " << std::fixed << std::setw(7) << std::setprecision(6) << overall_ssim << ", "
+              << "PSNR " << std::fixed << std::setw(7) << std::setprecision(6) << overall_psnr << std::endl;
+}
+
 int main(int argc, char* argv[]) {
     std::vector<std::string> args;
     args.reserve(argc);
@@ -243,8 +269,13 @@ int main(int argc, char* argv[]) {
                 break;
             }
 
-            if (iter % 7'000 == 0) {
+            if (optimParams.evaluate_interval > 0 && iter % optimParams.save_interval == 0) {
                 gaussians.Save_ply(modelParams.output_path, iter, false);
+            }
+
+            // Evaluation step
+            if (optimParams.evaluate_interval > 0 && iter % optimParams.evaluate_interval == 0) {
+                evaluate_overall_metrics(scene, gaussians, background, window_size, channel, conv_window);
             }
 
             // Densification
@@ -288,10 +319,11 @@ int main(int argc, char* argv[]) {
               << "All done in "
               << std::fixed << std::setw(7) << std::setprecision(3) << time_elapsed.count() << "sec, avg "
               << std::fixed << std::setw(4) << std::setprecision(1) << 1.0 * optimParams.iterations / time_elapsed.count() << " iter/sec, "
-              << gaussians.Get_xyz().size(0) << " splats, "
-              << std::fixed << std::setw(7) << std::setprecision(6) << " psnr: " << psnr_value << std::endl
+              << gaussians.Get_xyz().size(0) << " splats"
               << std::endl
               << std::endl;
+
+    evaluate_overall_metrics(scene, gaussians, background, window_size, channel, conv_window);
 
     return 0;
 }
